@@ -272,14 +272,39 @@ function AuthScreen() {
   const [busy, setBusy] = useState(false);
 
   const submit = async () => {
-    setBusy(true);
-    setMessage("");
-    const action = mode === "sign-in" ? supabase.auth.signInWithPassword : supabase.auth.signUp;
-    const { error } = await action({ email, password });
+  setBusy(true);
+  setMessage("");
+
+  try {
+    let result;
+
+    if (mode === "sign-in") {
+      result = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+    } else {
+      result = await supabase.auth.signUp({
+        email,
+        password
+      });
+    }
+
+    if (result.error) {
+      setMessage(result.error.message);
+    } else {
+      setMessage(
+        mode === "sign-in"
+          ? "Welcome back."
+          : "Account created. Check your email if confirmation is enabled."
+      );
+    }
+  } catch (error) {
+    setMessage(error.message || "Something went wrong. Try again.");
+  } finally {
     setBusy(false);
-    if (error) setMessage(error.message);
-    else setMessage(mode === "sign-in" ? "Welcome back." : "Account created. Check your email if confirmation is enabled.");
-  };
+  }
+};
 
   return (
     <div className="min-h-screen bg-[#050505] p-6 text-white">
